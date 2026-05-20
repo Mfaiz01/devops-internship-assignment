@@ -1,0 +1,12 @@
+[Unit]
+Description=Public API Service
+After=network.target
+
+[Service]
+User=ubuntu
+WorkingDirectory=/home/ubuntu/app
+ExecStart=/usr/bin/node /home/ubuntu/app/server.js
+Restart=always
+
+[Install]
+WantedBy=multi-user.target
