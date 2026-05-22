@@ -8,22 +8,24 @@
 
 ## Project Overview
 
-This project implements a secure multi-tier AWS infrastructure using Terraform, following DevOps and cloud networking best practices.
+This project implements a secure multi-tier AWS infrastructure using Terraform following DevOps, cloud networking, and infrastructure automation best practices.
 
-The system consists of:
+The deployment architecture consists of:
 
 - Public API Server (EC2)
 - Private Inference Worker (EC2)
-- VPC networking
+- AWS VPC networking
 - Public and Private Subnets
-- Internal service communication
+- Internal VPC communication
 - Infrastructure provisioning using Terraform
+- Deployment automation using shell scripts
+- Service lifecycle management using Systemd
 
-The API server is publicly accessible while worker nodes remain isolated within private networking.
+The API server is publicly accessible while worker nodes remain isolated inside private networking.
 
 ---
 
-## Architecture
+## System Architecture
 
 ```
 Internet User
@@ -46,7 +48,9 @@ Internet User
 +----------------------+
 ```
 
-### Network Design
+---
+
+## Network Design
 
 | Component | Configuration |
 |------------|---------------|
@@ -71,7 +75,7 @@ Terraform provisions:
 - Route Tables
 - Security Groups
 - EC2 Instances
-- Internal VPC Networking
+- Internal VPC networking
 
 Infrastructure validation:
 
@@ -80,11 +84,13 @@ terraform fmt
 terraform validate
 ```
 
-Validation Output:
+Validation Result:
 
 ```text
 Success! The configuration is valid.
 ```
+
+Infrastructure can be recreated from scratch entirely through Infrastructure as Code.
 
 ---
 
@@ -121,13 +127,13 @@ devops-internship-assignment/
 
 ## API Endpoint
 
-Public endpoint:
+Endpoint:
 
 ```http
 POST /v1/chat/completions
 ```
 
-Example request:
+Example Request:
 
 ```bash
 curl -X POST http://PUBLIC_IP:3000/v1/chat/completions \
@@ -135,7 +141,7 @@ curl -X POST http://PUBLIC_IP:3000/v1/chat/completions \
 -d '{"message":"Hello DevOps"}'
 ```
 
-Example response:
+Example Response:
 
 ```json
 {
@@ -145,23 +151,32 @@ Example response:
 
 ---
 
-## Deployment
+## Deployment Instructions
 
-### Terraform
+### Step 1 — Provision Infrastructure
 
 ```bash
 cd terraform
 
 terraform init
 
+terraform fmt
+
 terraform validate
 
 terraform apply
 ```
 
+Terraform automatically provisions:
+
+- Networking
+- Security groups
+- Public API VM
+- Private worker VM
+
 ---
 
-### API Server
+### Step 2 — Deploy API Server
 
 ```bash
 cd api
@@ -173,7 +188,7 @@ node server.js
 
 ---
 
-### Inference Worker
+### Step 3 — Deploy Inference Worker
 
 ```bash
 cd inference
@@ -185,9 +200,7 @@ python3 app.py
 
 ## Service Management
 
-Systemd service files are included.
-
-Enable services:
+Systemd unit files included:
 
 ```bash
 sudo cp systemd/api.service /etc/systemd/system/
@@ -205,7 +218,7 @@ sudo systemctl start api
 sudo systemctl start inference
 ```
 
-Check status:
+Check services:
 
 ```bash
 sudo systemctl status api
@@ -222,8 +235,10 @@ sudo systemctl status inference
 ```bash
 curl -X POST http://localhost:3000/v1/chat/completions \
 -H "Content-Type: application/json" \
--d '{"message":"Internal test"}'
+-d '{"message":"Internal Test"}'
 ```
+
+Result:
 
 Passed ✅
 
@@ -247,11 +262,11 @@ Passed ✅
 
 ### Failure Recovery Validation
 
-Worker shutdown tested.
+Worker shutdown simulated.
 
-API correctly returns connection failure.
+API correctly returned failure response.
 
-Worker restart restores functionality.
+Worker restart restored functionality.
 
 Passed ✅
 
@@ -262,28 +277,48 @@ Passed ✅
 Security controls implemented:
 
 - Private subnet worker isolation
-- No public exposure for inference worker
 - Internal VPC-only communication
 - Security Group restrictions
-- Bastion/API host access pattern
-- Infrastructure as Code provisioning
+- Public exposure limited to API layer
+- Infrastructure reproducibility
+- Network segmentation
+- Bastion/API access pattern
 
 ---
 
-## Future Improvements
+## Production Hardening
 
-Potential production enhancements:
+Before production deployment, I would additionally implement:
 
-- HTTPS / TLS
-- NAT Gateway
-- Auto Scaling Groups
+- HTTPS / TLS termination
+- AWS Secrets Manager
 - CloudWatch monitoring
+- Centralized logging
+- Auto Scaling Groups
 - Health checks
 - IAM least privilege model
-- Containerization (Docker)
-- Kubernetes deployment
-- Distributed inference scaling
-- CI/CD pipeline integration
+- Load balancing
+- Backup policies
+- API authentication
+- Rate limiting
+- Vulnerability scanning
+
+---
+
+## Scaling For Models 100x Larger
+
+For significantly larger model workloads:
+
+- GPU inference infrastructure
+- Distributed inference workers
+- Kubernetes orchestration
+- Model sharding
+- Request queue systems
+- Horizontal worker autoscaling
+- Model batching
+- Distributed artifact storage
+- Caching layers
+- Dedicated inference clusters
 
 ---
 
@@ -302,19 +337,21 @@ Potential production enhancements:
 
 ## Assignment Outcome
 
-Implemented a secure multi-tier AWS deployment architecture demonstrating:
+Implemented a secure multi-tier cloud deployment architecture demonstrating:
 
 - Infrastructure provisioning
-- Cloud networking
-- Secure service isolation
+- Infrastructure reproducibility
+- Network isolation
 - Internal service communication
 - Deployment automation
-- Infrastructure reproducibility
+- Cloud networking principles
+- Infrastructure validation
+- Failure recovery testing
 
 ---
 
 Author: Mohammed Faiz
 
-GitHub:
+GitHub Repository:
 
 https://github.com/Mfaiz01/devops-internship-assignment
